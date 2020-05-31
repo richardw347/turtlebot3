@@ -9,8 +9,8 @@ notifications:
     on_success: change
     on_failure: always
     recipients:
-      - pyo@robotis.com
-      - thlim@robotis.com
+      - richardw347@gmail.com
+      - richardw347@gmail.com
 
 branches:
   only:
