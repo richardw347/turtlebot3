@@ -58,7 +58,3 @@ build-*/
 *.dat
 *.txt.user
 *.gch
-/.project
-
-.idea/
-*cmake-build-debug*

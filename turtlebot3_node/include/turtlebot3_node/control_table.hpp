@@ -89,24 +89,31 @@ typedef struct
   ControlItem imu_orientation_y = {104, RAM, 4, READ};
   ControlItem imu_orientation_z = {108, RAM, 4, READ};
 
-  ControlItem present_current_left = {120, RAM, 4, READ};
-  ControlItem present_current_right = {124, RAM, 4, READ};
-  ControlItem present_velocity_left = {128, RAM, 4, READ};
-  ControlItem present_velocity_right = {132, RAM, 4, READ};
-  ControlItem present_position_left = {136, RAM, 4, READ};
-  ControlItem present_position_right = {140, RAM, 4, READ};
+  ControlItem present_current_m1 = {120, RAM, 4, READ};
+  ControlItem present_current_m2 = {124, RAM, 4, READ};
+  ControlItem present_current_m3 = {128, RAM, 4, READ};
 
-  ControlItem motor_torque_enable = {149, RAM, 1, READ_WRITE};
+  ControlItem present_velocity_m1 = {132, RAM, 4, READ};
+  ControlItem present_velocity_m2 = {136, RAM, 4, READ};
+  ControlItem present_velocity_m3 = {140, RAM, 4, READ};
 
-  ControlItem cmd_velocity_linear_x = {150, RAM, 4, READ_WRITE};
-  ControlItem cmd_velocity_linear_y = {154, RAM, 4, READ_WRITE};
-  ControlItem cmd_velocity_linear_z = {158, RAM, 4, READ_WRITE};
-  ControlItem cmd_velocity_angular_x = {162, RAM, 4, READ_WRITE};
-  ControlItem cmd_velocity_angular_y = {166, RAM, 4, READ_WRITE};
-  ControlItem cmd_velocity_angular_z = {170, RAM, 4, READ_WRITE};
+  ControlItem present_position_m1 = {144, RAM, 4, READ};
+  ControlItem present_position_m2 = {148, RAM, 4, READ};
+  ControlItem present_position_m3 = {152, RAM, 4, READ};
 
-  ControlItem profile_acceleration_left = {174, RAM, 4, READ_WRITE};
-  ControlItem profile_acceleration_right = {178, RAM, 4, READ_WRITE};
+  ControlItem motor_torque_enable = {159, RAM, 1, READ_WRITE};
+
+  ControlItem cmd_velocity_linear_x = {160, RAM, 4, READ_WRITE};
+  ControlItem cmd_velocity_linear_y = {164, RAM, 4, READ_WRITE};
+  ControlItem cmd_velocity_linear_z = {168, RAM, 4, READ_WRITE};
+
+  ControlItem cmd_velocity_angular_x = {172, RAM, 4, READ_WRITE};
+  ControlItem cmd_velocity_angular_y = {176, RAM, 4, READ_WRITE};
+  ControlItem cmd_velocity_angular_z = {180, RAM, 4, READ_WRITE};
+
+  ControlItem profile_acceleration_m1 = {184, RAM, 4, READ_WRITE};
+  ControlItem profile_acceleration_m2 = {188, RAM, 4, READ_WRITE};
+  ControlItem profile_acceleration_m3 = {192, RAM, 4, READ_WRITE};
 } ControlTable;
 
 const ControlTable extern_control_table;

@@ -142,12 +142,12 @@ void sensors::SensorState::publish(
     extern_control_table.motor_torque_enable.length);
 
   msg->left_encoder = dxl_sdk_wrapper->get_data_from_device<int32_t>(
-      extern_control_table.present_position_left.addr,
-      extern_control_table.present_position_left.length);
+      extern_control_table.present_position_m1.addr,
+      extern_control_table.present_position_m1.length);
 
   msg->right_encoder = dxl_sdk_wrapper->get_data_from_device<int32_t>(
-    extern_control_table.present_position_right.addr,
-    extern_control_table.present_position_right.length);
+    extern_control_table.present_position_m2.addr,
+    extern_control_table.present_position_m2.length);
 
   msg->battery = 0.01f * dxl_sdk_wrapper->get_data_from_device<int32_t>(
     extern_control_table.battery_voltage.addr,

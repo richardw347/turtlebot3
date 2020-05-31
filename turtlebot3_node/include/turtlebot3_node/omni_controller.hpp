@@ -29,11 +29,11 @@ namespace robotis
 {
 namespace turtlebot3
 {
-class DiffDriveController : public rclcpp::Node
+class OmniController : public rclcpp::Node
 {
  public:
-  explicit DiffDriveController(const float wheel_seperation, const float wheel_radius);
-  virtual ~DiffDriveController(){};
+  explicit OmniController(const float wheel_seperation, const float wheel_radius);
+  virtual ~OmniController(){};
 
  private:
   std::shared_ptr<rclcpp::Node> nh_;

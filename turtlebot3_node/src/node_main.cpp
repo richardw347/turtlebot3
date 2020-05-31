@@ -23,7 +23,7 @@
 #include <rcutils/cmdline_parser.h>
 #include <rclcpp/rclcpp.hpp>
 
-#include "turtlebot3_node/diff_drive_controller.hpp"
+#include "turtlebot3_node/omni_controller.hpp"
 #include "turtlebot3_node/turtlebot3.hpp"
 
 void help_print()
@@ -58,13 +58,13 @@ int main(int argc, char *argv[])
   rclcpp::executors::SingleThreadedExecutor executor;
 
   auto turtlebot3 = std::make_shared<robotis::turtlebot3::TurtleBot3>(usb_port);
-  auto diff_drive_controller =
-    std::make_shared<robotis::turtlebot3::DiffDriveController>(
+  auto omni_controller =
+    std::make_shared<robotis::turtlebot3::OmniController>(
       turtlebot3->get_wheels()->separation,
       turtlebot3->get_wheels()->radius);
 
   executor.add_node(turtlebot3);
-  executor.add_node(diff_drive_controller);
+  executor.add_node(omni_controller);
   executor.spin();
 
   rclcpp::shutdown();

@@ -67,8 +67,8 @@ void TurtleBot3::init_dynamixel_sdk_wrapper(const std::string & usb_port)
 
   dxl_sdk_wrapper_->init_read_memory(
     extern_control_table.millis.addr,
-    (extern_control_table.profile_acceleration_right.addr - extern_control_table.millis.addr) +
-    extern_control_table.profile_acceleration_right.length
+    (extern_control_table.profile_acceleration_m3.addr - extern_control_table.millis.addr) +
+    extern_control_table.profile_acceleration_m3.length
   );
 }
 
@@ -284,18 +284,19 @@ void TurtleBot3::parameter_event_callback()
 
         union Data
         {
-          int32_t dword[2];
+          int32_t dword[3];
           uint8_t byte[4*2];
         } data;
 
         data.dword[0] = static_cast<int32_t>(motors_.profile_acceleration);
         data.dword[1] = static_cast<int32_t>(motors_.profile_acceleration);
+        data.dword[2] = static_cast<int32_t>(motors_.profile_acceleration);
 
-        uint16_t start_addr = extern_control_table.profile_acceleration_left.addr;
+        uint16_t start_addr = extern_control_table.profile_acceleration_m1.addr;
         uint16_t addr_length =
-          (extern_control_table.profile_acceleration_right.addr -
-          extern_control_table.profile_acceleration_left.addr) +
-          extern_control_table.profile_acceleration_right.length;
+          (extern_control_table.profile_acceleration_m3.addr -
+          extern_control_table.profile_acceleration_m1.addr) +
+          extern_control_table.profile_acceleration_m2.length;
 
         uint8_t * p_data = &data.byte[0];
 
@@ -330,7 +331,7 @@ void TurtleBot3::cmd_vel_callback()
         } data;
 
         data.dword[0] = static_cast<int32_t>(msg->linear.x * 100);
-        data.dword[1] = 0;
+        data.dword[1] = static_cast<int32_t>(msg->linear.y * 100);
         data.dword[2] = 0;
         data.dword[3] = 0;
         data.dword[4] = 0;

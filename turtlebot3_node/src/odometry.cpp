@@ -35,6 +35,8 @@ Odometry::Odometry(
 {
   RCLCPP_INFO(nh_->get_logger(), "Init Odometry");
 
+  robot_pose_[0] = robot_pose_[1] = robot_pose_[2] = 0.0;
+
   nh_->declare_parameter("odometry.frame_id");
   nh_->declare_parameter("odometry.child_frame_id");
 
@@ -161,6 +163,7 @@ void Odometry::publish(const rclcpp::Time & now)
   odom_msg->pose.pose.orientation.w = q.w();
 
   odom_msg->twist.twist.linear.x  = robot_vel_[0];
+  odom_msg->twist.twist.linear.y  = robot_vel_[1];
   odom_msg->twist.twist.angular.z = robot_vel_[2];
 
   // TODO: Find more accurate covariance.
@@ -198,13 +201,36 @@ void Odometry::publish(const rclcpp::Time & now)
 void Odometry::update_joint_state(
   const std::shared_ptr<sensor_msgs::msg::JointState const> &joint_state)
 {
-  static std::array<double, 2> last_joint_positions = {0.0f, 0.0f};
+  static std::array<double, 3> last_joint_positions = {0.0f, 0.0f, 0.0f};
+  static bool init_ = false;
 
-  diff_joint_positions_[0] = joint_state->position[0] - last_joint_positions[0];
-  diff_joint_positions_[1] = joint_state->position[1] - last_joint_positions[1];
+  if (!init_)
+  {
+    last_joint_time_ = joint_state->header.stamp.nanosec * 1e-9;
+    last_joint_positions[0] = joint_state->position[0];
+    last_joint_positions[1] = joint_state->position[1];
+    last_joint_positions[2] = joint_state->position[2];
+    init_ = true;
 
-  last_joint_positions[0] = joint_state->position[0];
-  last_joint_positions[1] = joint_state->position[1];
+    omni_joint_positions_[0] = 0.0;
+    omni_joint_positions_[1] = 0.0;
+    omni_joint_positions_[2] = 0.0;
+
+  }
+  else
+  {
+    omni_joint_positions_[0] = joint_state->position[0] - last_joint_positions[0];
+    omni_joint_positions_[1] = joint_state->position[1] - last_joint_positions[1];
+    omni_joint_positions_[2] = joint_state->position[2] - last_joint_positions[2];
+
+    joint_dt_ = (joint_state->header.stamp.nanosec * 1e-9) - last_joint_time_;
+    last_joint_time_ = joint_state->header.stamp.nanosec * 1e-9;
+
+    last_joint_positions[0] = joint_state->position[0];
+    last_joint_positions[1] = joint_state->position[1];
+    last_joint_positions[2] = joint_state->position[2];
+  }
+
 }
 
 void Odometry::update_imu(const std::shared_ptr<sensor_msgs::msg::Imu const> &imu)
@@ -217,59 +243,27 @@ void Odometry::update_imu(const std::shared_ptr<sensor_msgs::msg::Imu const> &im
 bool Odometry::calculate_odometry(const rclcpp::Duration &duration)
 {
   // rotation value of wheel [rad]
-  double wheel_l = diff_joint_positions_[0];
-  double wheel_r = diff_joint_positions_[1];
+  double m1 = omni_joint_positions_[0];
+  double m2 = omni_joint_positions_[1];
+  double m3 = omni_joint_positions_[2];
 
-  double delta_s = 0.0;
-  double delta_theta = 0.0;
+  double x = (wheels_radius_ * (1.0 / sqrt(3) * m1)) - (wheels_radius_ * (1.0 / sqrt(3) * m2));
+  double y = (wheels_radius_ * ((2.0/3.0 * m3)) - (wheels_radius_ * (1.0/3.0 * m1)) - (wheels_radius_ * (1.0/3.0 * m2)));
+  double th = (wheels_radius_ / (3 * wheels_separation_)) * (m1 + m2 + m3);
 
-  double theta = 0.0;
-  static double last_theta = 0.0;
+  double step_time = joint_dt_;
 
-  // v = translational velocity [m/s]
-  // w = rotational velocity [rad/s]
-  double v = 0.0;
-  double w = 0.0;
+  RCLCPP_INFO(nh_->get_logger(), "x : %f, y : %f, th: %f, heading: %f", x, y, th, robot_pose_[2] * 57.2958);
 
-  double step_time = duration.seconds();
-
-  if (step_time == 0.0)
-    return false;
-
-  if (std::isnan(wheel_l))
-    wheel_l = 0.0;
-
-  if (std::isnan(wheel_r))
-    wheel_r = 0.0;
-
-  delta_s = wheels_radius_ * (wheel_r + wheel_l) / 2.0;
-
-  if (use_imu_)
-  {
-    theta = imu_angle_;
-    delta_theta = theta - last_theta;
-  }
-  else
-  {
-    theta = wheels_radius_ * (wheel_r - wheel_l) / wheels_separation_;
-    delta_theta = theta;
-  }
-
-  // compute odometric pose
-  robot_pose_[0] += delta_s * cos(robot_pose_[2] + (delta_theta / 2.0));
-  robot_pose_[1] += delta_s * sin(robot_pose_[2] + (delta_theta / 2.0));
-  robot_pose_[2] += delta_theta;
+  robot_pose_[0] += cos(robot_pose_[2]) * x - sin(robot_pose_[2]) * y;
+  robot_pose_[1] += cos(robot_pose_[2]) * x + sin(robot_pose_[2]) * y;
+  robot_pose_[2] += th;
 
   RCLCPP_DEBUG(nh_->get_logger(), "x : %f, y : %f", robot_pose_[0], robot_pose_[1]);
 
-  // compute odometric instantaneouse velocity
-  v = delta_s / step_time;
-  w = delta_theta / step_time;
+  robot_vel_[0] = x / step_time;
+  robot_vel_[1] = y / step_time;
+  robot_vel_[2] = th / step_time;
 
-  robot_vel_[0] = v;
-  robot_vel_[1] = 0.0;
-  robot_vel_[2] = w;
-
-  last_theta = theta;
   return true;
 }

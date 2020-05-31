@@ -44,19 +44,25 @@ void sensors::JointState::publish(
 
   std::array<int32_t, JOINT_NUM> position =
     {dxl_sdk_wrapper->get_data_from_device<int32_t>(
-      extern_control_table.present_position_left.addr,
-      extern_control_table.present_position_left.length),
+      extern_control_table.present_position_m1.addr,
+      extern_control_table.present_position_m1.length),
     dxl_sdk_wrapper->get_data_from_device<int32_t>(
-      extern_control_table.present_position_right.addr,
-      extern_control_table.present_position_right.length)};
+      extern_control_table.present_position_m2.addr,
+      extern_control_table.present_position_m2.length),
+     dxl_sdk_wrapper->get_data_from_device<int32_t>(
+             extern_control_table.present_position_m3.addr,
+             extern_control_table.present_position_m3.length)};
 
   std::array<int32_t, JOINT_NUM> velocity =
     {dxl_sdk_wrapper->get_data_from_device<int32_t>(
-      extern_control_table.present_velocity_left.addr,
-      extern_control_table.present_velocity_left.length),
+      extern_control_table.present_velocity_m1.addr,
+      extern_control_table.present_velocity_m1.length),
     dxl_sdk_wrapper->get_data_from_device<int32_t>(
-      extern_control_table.present_velocity_right.addr,
-      extern_control_table.present_velocity_right.length)};
+      extern_control_table.present_velocity_m2.addr,
+      extern_control_table.present_velocity_m2.length),
+     dxl_sdk_wrapper->get_data_from_device<int32_t>(
+             extern_control_table.present_velocity_m3.addr,
+             extern_control_table.present_velocity_m3.length)};
 
   // std::array<int32_t, JOINT_NUM> current =
   //   {dxl_sdk_wrapper->get_data_from_device<int32_t>(
@@ -69,20 +75,24 @@ void sensors::JointState::publish(
   msg->header.frame_id = this->frame_id_;
   msg->header.stamp = now;
 
-  msg->name.push_back("wheel_left_joint");
-  msg->name.push_back("wheel_right_joint");
+  msg->name.push_back("wheel_m1_joint");
+  msg->name.push_back("wheel_m2_joint");
+  msg->name.push_back("wheel_m3_joint");
 
   msg->position.push_back(TICK_TO_RAD * last_diff_position[0]);
   msg->position.push_back(TICK_TO_RAD * last_diff_position[1]);
+  msg->position.push_back(TICK_TO_RAD * last_diff_position[2]);
 
   msg->velocity.push_back(RPM_TO_MS * velocity[0]);
   msg->velocity.push_back(RPM_TO_MS * velocity[1]);
+  msg->velocity.push_back(RPM_TO_MS * velocity[2]);
 
   // msg->effort.push_back(current[0]);
   // msg->effort.push_back(current[1]);
 
   last_diff_position[0] += (position[0] - last_position[0]);
   last_diff_position[1] += (position[1] - last_position[1]);
+  last_diff_position[2] += (position[2] - last_position[2]);
 
   last_position = position;
 

@@ -87,7 +87,9 @@ class Odometry
   bool use_imu_;
   bool publish_tf_;
 
-  std::array<double, 2> diff_joint_positions_;
+  std::array<double, 3> omni_joint_positions_;
+  double last_joint_time_;
+  double joint_dt_;
   double imu_angle_;
 
   std::array<double,3> robot_pose_;
