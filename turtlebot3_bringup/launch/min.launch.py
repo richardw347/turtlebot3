@@ -31,7 +31,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     TURTLEBOT3_MODEL = "biscuit"
 
-    usb_port = LaunchConfiguration('usb_port', default='/dev/ttyACM0')
+    usb_port = LaunchConfiguration('usb_port', default='/dev/biscuit/controller')
 
     tb3_param_dir = LaunchConfiguration(
         'tb3_param_dir',

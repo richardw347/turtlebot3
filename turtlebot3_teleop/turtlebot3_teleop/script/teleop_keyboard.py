@@ -52,7 +52,7 @@ msg = """
 Control Your TurtleBot3!
 ---------------------------
 Moving around:
-        w
+   q    w    e
    a    s    d
         x
 
@@ -81,9 +81,10 @@ def get_key(settings):
     return key
 
 
-def print_vels(target_linear_velocity, target_angular_velocity):
-    print('currently:\tlinear velocity {0}\t angular velocity {1} '.format(
+def print_vels(target_linear_velocity, target_slide_velocity, target_angular_velocity):
+    print('currently:\tlinear velocity {0}\tslide velocity {1}\t angular velocity {2} '.format(
         target_linear_velocity,
+        target_slide_velocity,
         target_angular_velocity))
 
 
@@ -136,6 +137,8 @@ def main():
     target_angular_velocity  = 0.0
     control_linear_velocity  = 0.0
     control_angular_velocity = 0.0
+    target_slide_velocity    = 0.0
+    control_slide_velocity   = 0.0
 
     try:
         print(msg)
@@ -145,31 +148,38 @@ def main():
                 target_linear_velocity =\
                     check_linear_limit_velocity(target_linear_velocity + LIN_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
+            elif key == 'q' :
+                target_slide_velocity =\
+                    check_linear_limit_velocity(target_slide_velocity + LIN_VEL_STEP_SIZE)
+                status = status + 1
+            elif key == 'e' :
+                target_slide_velocity =\
+                    check_linear_limit_velocity(target_slide_velocity - LIN_VEL_STEP_SIZE)
+                status = status + 1
             elif key == 'x' :
                 target_linear_velocity =\
                     check_linear_limit_velocity(target_linear_velocity - LIN_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
             elif key == 'a' :
                 target_angular_velocity =\
                     check_angular_limit_velocity(target_angular_velocity + ANG_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
             elif key == 'd' :
                 target_angular_velocity =\
                     check_angular_limit_velocity(target_angular_velocity - ANG_VEL_STEP_SIZE)
                 status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
             elif key == ' ' or key == 's' :
                 target_linear_velocity   = 0.0
                 control_linear_velocity  = 0.0
                 target_angular_velocity  = 0.0
                 control_angular_velocity = 0.0
-                print_vels(target_linear_velocity, target_angular_velocity)
+                target_slide_velocity    = 0.0
+                control_slide_velocity   = 0.0
             else:
                 if (key == '\x03'):
                     break
+
+            print_vels(target_linear_velocity, target_slide_velocity, target_angular_velocity)
 
             if status == 20 :
                 print(msg)
@@ -182,8 +192,13 @@ def main():
                 target_linear_velocity,
                 (LIN_VEL_STEP_SIZE/2.0))
 
+            control_slide_velocity = make_simple_profile(
+                control_slide_velocity,
+                target_slide_velocity,
+                (LIN_VEL_STEP_SIZE/2.0))
+
             twist.linear.x = control_linear_velocity
-            twist.linear.y = 0.0
+            twist.linear.y = control_slide_velocity
             twist.linear.z = 0.0
 
             control_angular_velocity = make_simple_profile(
